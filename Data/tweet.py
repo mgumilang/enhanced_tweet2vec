@@ -6,6 +6,7 @@ import signal
 
 # Checkpoint init
 cp = 0
+time = ""
 
 # Read since_id for continuing fetching tweets
 try:
@@ -25,13 +26,14 @@ auth.set_access_token(access_token, access_secret)
 api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 
 # Fetch tweets
-with open('tweet_unprocessed.txt', 'ab') as f:
-    for tweet in tweepy.Cursor(api.search, q="-filter:retweets", max_id=max_id, since="2017-06-23", until="2017-06-25", lang="en").items():
+with open('custom_unprocessed.txt', 'ab') as f:
+    for tweet in tweepy.Cursor(api.search, q="#goodnight -filter:retweets", max_id=max_id, since="2017-06-27", until="2017-07-1", lang="en").items(5000):
         # Process a single status
         print(str(tweet.created_at), tweet.id, tweet.text)
         f.write(json.dumps(tweet.text.encode('utf8')) + '\n')
         cp = tweet.id
+        time = str(tweet.created_at)
 
 # Save checkpoint if fetching tweets succeeds
-with open("checkpoint.txt", 'ab') as f:
-    f.write(str(cp) + '\n')
+with open("custom_checkpoint.txt", 'ab') as f:
+    f.write("%s %s goodnight\n" % (time, str(cp)))
