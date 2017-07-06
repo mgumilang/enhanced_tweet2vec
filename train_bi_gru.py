@@ -105,14 +105,24 @@ preds = model.predict(x_test_ohv)
 preds[preds>=0.5] = 1
 preds[preds<0.5] = 0
 
-sum_acc = 0
+sum_precision = 0.
+sum_recall = 0.
 for i in range(len(y_test_v)):
 	sum_hit = sum([a*b for a,b in zip(preds[i], y_test_v[i])])
-	acc = float(sum_hit) / sum(y_test_v[i])
-	sum_acc += acc
+	recall = float(sum_hit) / sum(y_test_v[i])
+	sum_recall += recall
+	if sum(preds[i]) > 0:
+		precision = float(sum_hit) / sum(preds[i])
+	else:
+		precision = 0
+	sum_precision += precision
 
-final_acc = sum_acc / len(y_test_v)
-print("Accuracy = {:.4f}".format(final_acc))
+final_recall = sum_recall / len(y_test_v)
+final_precision = sum_precision / len(y_test_v)
+f1 = (2 * final_precision * final_recall) / (final_precision + final_recall)
+print("Recall    = {:.4f}".format(final_recall))
+print("Precision = {:.4f}".format(final_precision))
+print("F-score   = {}".format(f1))
 
 # Write result (tweet, true, predicted) to result_cnn_bi_lstm.tsv
 # Swap keys and values of tk_word.word_index
