@@ -116,19 +116,21 @@ model.fit(x_train_ohv, y_train_v,
           epochs=epochs)
 
 preds = model.predict(x_test_ohv)
-preds[preds>=0.5] = 1
-preds[preds<0.5] = 0
 
 sum_precision = 0.
 sum_recall = 0.
 for i in range(len(y_test_v)):
-	sum_hit = sum([a*b for a,b in zip(preds[i], y_test_v[i])])
-	recall = float(sum_hit) / sum(y_test_v[i])
+	idx_preds = list(preds[i])
+	idx_preds = np.argsort(idx_preds)
+	n_hashtag = sum(y_test_v[i])
+	idx_preds = idx_preds[:-(n_hashtag+1):-1]
+	pred_hashtag = np.asarray(preds[i])
+	pred_hashtag[idx_preds] = 1
+	pred_hashtag[pred_hashtag<1] = 0
+	sum_hit = sum([a*b for a,b in zip(pred_hashtag, y_test_v[i])])
+	recall = float(sum_hit) / n_hashtag
 	sum_recall += recall
-	if sum(preds[i]) > 0:
-		precision = float(sum_hit) / sum(preds[i])
-	else:
-		precision = 0
+	precision = float(sum_hit) / n_hashtag
 	sum_precision += precision
 
 final_recall = sum_recall / len(y_test_v)
