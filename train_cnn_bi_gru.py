@@ -106,7 +106,7 @@ model.add(MaxPooling1D())
 model.add(Dropout(0.25))
 
 model.add(Bidirectional(GRU(64, dropout=0.5)))
-model.add(Dense(word_dict_len, activation='sigmoid'))
+model.add(Dense(word_dict_len, activation='softmax'))
 
 model.compile('adam', 'binary_crossentropy', metrics=['categorical_accuracy'])
 
