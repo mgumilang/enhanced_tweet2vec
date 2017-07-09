@@ -117,28 +117,58 @@ model.fit(x_train_ohv, y_train_v,
 
 preds = model.predict(x_test_ohv)
 
-sum_precision = 0.
-sum_recall = 0.
-for i in range(len(y_test_v)):
-	idx_preds = list(preds[i])
-	idx_preds = np.argsort(idx_preds)
-	n_hashtag = sum(y_test_v[i])
-	idx_preds = idx_preds[:-(n_hashtag+1):-1]
-	pred_hashtag = np.asarray(preds[i])
-	pred_hashtag[idx_preds] = 1
-	pred_hashtag[pred_hashtag<1] = 0
-	sum_hit = sum([a*b for a,b in zip(pred_hashtag, y_test_v[i])])
-	recall = float(sum_hit) / n_hashtag
-	sum_recall += recall
-	precision = float(sum_hit) / n_hashtag
-	sum_precision += precision
+def precision1(y_true, y_pred):
+	sum_precision = 0.
+	for i in range(len(y_true)):
+		y_pred_idx = np.argsort(y_pred[i])
+		if y_true[i][y_pred_idx[-1]]:
+			sum_precision += 1
+	return sum_precision/len(y_true)
 
-final_recall = sum_recall / len(y_test_v)
-final_precision = sum_precision / len(y_test_v)
-f1 = (2 * final_precision * final_recall) / (final_precision + final_recall)
-print("Recall    = {:.4f}".format(final_recall))
-print("Precision = {:.4f}".format(final_precision))
-print("F-score   = {}".format(f1))
+def recall10(y_true, y_pred):
+	sum_recall = 0.
+	for i in range(len(y_true)):
+		y_pred_idx = np.argsort(y_pred[i])[:-11:-1]
+		sum_hit = 0.
+		for j in y_pred_idx:
+			if (y_pred[i][j]) and (y_true[i][j]):
+				sum_hit += 1
+		sum_recall += sum_hit / sum(y_true[i])
+	return sum_recall/len(y_true)
+
+def mean_rank(y_true, y_pred):
+	sum_rank = 0
+	for i in range(len(y_true)):
+		y_pred_idx = np.argsort(y_pred[i])[::-1]
+		for idx, j in enumerate(y_pred_idx):
+			if y_true[i][j]:
+				sum_rank += idx
+	return sum_rank/np.sum(y_true)
+
+
+# sum_precision = 0.
+# sum_recall = 0.
+# for i in range(len(y_test_v)):
+# 	idx_preds = list(preds[i])
+# 	idx_preds = np.argsort(idx_preds)
+# 	n_hashtag = sum(y_test_v[i])
+# 	idx_preds = idx_preds[:-(n_hashtag+1):-1]
+# 	pred_hashtag = np.asarray(preds[i])
+# 	pred_hashtag[idx_preds] = 1
+# 	pred_hashtag[pred_hashtag<1] = 0
+# 	sum_hit = sum([a*b for a,b in zip(pred_hashtag, y_test_v[i])])
+# 	recall = float(sum_hit) / n_hashtag
+# 	sum_recall += recall
+# 	precision = float(sum_hit) / n_hashtag
+# 	sum_precision += precision
+
+# final_recall = sum_recall / len(y_test_v)
+# final_precision = sum_precision / len(y_test_v)
+# f1 = (2 * final_precision * final_recall) / (final_precision + final_recall
+print("Calculating evaluation..")
+print("Recall    @10 = {:3.2f}%".format(recall10(y_test_v, preds) * 100))
+print("Precision @1  = {:3.2f}%".format(precision1(y_test_v, preds) * 100))
+print("Mean Rank     = {}".format(mean_rank(y_test_v, preds)))
 
 # Write result (tweet, true, predicted) to result_cnn_bi_lstm.tsv
 # Swap keys and values of tk_word.word_index
