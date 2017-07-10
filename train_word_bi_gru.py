@@ -6,19 +6,18 @@ from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation
 from keras.layers import Embedding
 from keras.layers import Conv1D, MaxPooling1D
-from keras.layers import LSTM, Bidirectional
+from keras.layers import GRU, Bidirectional
 
 import numpy as np
-import os
-import errno
 import sys
 
 batch_size = 32
 epochs = 20
+maxlen = 20000
+inlen = 80
 
-data_size = sys.argv[1]
-data_train = data_size + "_data_train.txt"
-data_test = data_size + "_data_test.txt"
+data_train = sys.argv[1]
+data_test = sys.argv[2]
 
 x_train = []
 y_train = []
@@ -44,33 +43,35 @@ with open(data_test, 'r') as f:
 		x_test.append(test_text)
 		y_test.append(test_label)
 
-# Building char dictionary from x_train
-tk_char = Tokenizer(filters='', char_level=True)
-tk_char.fit_on_texts(x_train)
-char_dict_len = len(tk_char.word_index)
-print("Char dict length =", char_dict_len)
+# Building word dictionary from x_train
+tk_train = Tokenizer(num_words=maxlen)
+tk_train.fit_on_texts(x_train)
+train_dict_len = len(tk_train.word_index)
+print("Train word dict length =", train_dict_len)
 
-print("Converting x_train to one-hot vectors..")
-x_train_ohv = []
+print("Converting x_train words to integers..")
+x_train_ohv = tk_train.texts_to_sequences(x_train)
 x_len = len(x_train)
 i = 1
-for x in x_train:
-	if (i % 1000 == 0) or (i == x_len): print("%s of %s" % (i, x_len))
-	i += 1
-	x_train_ohv.append(tk_char.texts_to_matrix(x))
-print("Add padding to make 150*char_dict_len matrix..")
-x_train_ohv = sequence.pad_sequences(x_train_ohv, maxlen=150, padding='post', truncating='post')
+# for x in x_train:
+# 	if (i % 1000 == 0) or (i == x_len): print("%s of %s" % (i, x_len))
+# 	i += 1
+# 	x_temp = [tk_train.word_index[c.lower()] if tk_train.word_index[c.lower()] <= maxlen else 0 for c in x.split()]
+# 	x_train_ohv.append(x_temp)
+print("Add padding to make {}*word_dict_len matrix..".format(inlen))
+x_train_ohv = sequence.pad_sequences(x_train_ohv, maxlen=inlen, padding='post', truncating='post')
 
-print("Converting x_test to one-hot vectors..")
-x_test_ohv = []
+print("Converting x_test words to integers..")
+x_test_ohv = tk_train.texts_to_sequences(x_train)
 x_len = len(x_test)
 i = 1
-for x in x_test:
-	if (i % 1000 == 0) or (i == x_len): print("%s of %s" % (i, x_len))
-	i += 1
-	x_test_ohv.append(tk_char.texts_to_matrix(x))
-print("Add padding to make 150*char_dict_len matrix..")
-x_test_ohv = sequence.pad_sequences(x_test_ohv, maxlen=150, padding='post', truncating='post')
+# for x in x_test:
+# 	if (i % 1000 == 0) or (i == x_len): print("%s of %s" % (i, x_len))
+# 	i += 1
+# 	x_temp = [tk_train.word_index[c.lower()] if tk_train.word_index[c.lower()] <= maxlen else 0 for c in x.split()]
+# 	x_test_ohv.append(x_temp)
+print("Add padding to make {}*word_dict_len matrix..".format(inlen))
+x_test_ohv = sequence.pad_sequences(x_test_ohv, maxlen=inlen, padding='post', truncating='post')
 
 # Building word dictionary from y_train
 tk_word = Tokenizer()
@@ -91,24 +92,9 @@ y_test_v = sequence.pad_sequences(y_test_v, maxlen=word_dict_len)
 print("Building model")
 model = Sequential()
 
-model.add(Conv1D(250,
-				 3,
-				 padding='valid',
-				 activation='relu',
-				 strides=1,
-				 input_shape=(150, char_dict_len+1)))
-model.add(MaxPooling1D())
-model.add(Dropout(0.25))
+model.add(Embedding(maxlen, 128, input_length=inlen))
 
-model.add(Conv1D(100,
-				 2,
-				 padding='valid',
-				 activation='relu',
-				 strides=1))
-model.add(MaxPooling1D())
-model.add(Dropout(0.25))
-
-model.add(Bidirectional(LSTM(64, dropout=0.5)))
+model.add(Bidirectional(GRU(64, dropout=0.5)))
 model.add(Dense(word_dict_len, activation='softmax'))
 
 model.compile('adam', 'binary_crossentropy', metrics=['categorical_accuracy'])
@@ -180,24 +166,11 @@ for x in tk_word.word_index:
 	hashtag_index[tk_word.word_index[x]] = x
 print(hashtag_index)
 
-filename = '/' + data_size + '_cnn_bi_lstm/result_cnn_bi_lstm.tsv'
-modelname = '/' + data_size + '_cnn_bi_lstm/cnn_bi_lstm_model.h5'
-if not os.path.exists(os.path.dirname(filename)):
-    try:
-        os.makedirs(os.path.dirname(filename))
-    except OSError as exc: # Guard against race condition
-        if exc.errno != errno.EEXIST:
-            raise
-
-# Open and write to result_cnn_bi_lstm.tsv
-print("Writing result..")
-with open(filename, 'w') as f:
+# Open and write to result_cnn_bi_gru.tsv
+with open('result_bi_gru.tsv', 'w') as f:
 	for i in range(len(y_test)):
 		predicted = []
 		for idx, x in enumerate(preds[i]):
 			if x == 1:
 				predicted.append('#{}'.format(hashtag_index[idx+1]))
 		f.write("{}\t{}\t{}\n".format(x_test[i].strip(), y_test[i], ' '.join(predicted)))
-
-print("Saving model..")
-model.save(modelname)
