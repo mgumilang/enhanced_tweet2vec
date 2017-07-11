@@ -9,6 +9,8 @@ from keras.layers import Conv1D, MaxPooling1D
 from keras.layers import GRU, Bidirectional
 
 import numpy as np
+import os
+import errno
 import sys
 
 batch_size = 32
@@ -16,8 +18,9 @@ epochs = 20
 maxlen = 20000
 inlen = 80
 
-data_train = sys.argv[1]
-data_test = sys.argv[2]
+data_size = sys.argv[1]
+data_train = data_size + "_data_train.txt"
+data_test = data_size + "_data_test.txt"
 
 x_train = []
 y_train = []
@@ -166,11 +169,24 @@ for x in tk_word.word_index:
 	hashtag_index[tk_word.word_index[x]] = x
 print(hashtag_index)
 
-# Open and write to result_cnn_bi_gru.tsv
-with open('result_bi_gru.tsv', 'w') as f:
+filename = data_size + '_word_bi_gru/result_word_bi_gru.tsv'
+modelname = data_size + '_word_bi_gru/word_bi_gru_model.h5'
+if not os.path.exists(os.path.dirname(filename)):
+    try:
+        os.makedirs(os.path.dirname(filename))
+    except OSError as exc: # Guard against race condition
+        if exc.errno != errno.EEXIST:
+            raise
+
+# Open and write to result_cnn_bi_lstm.tsv
+print("Writing result..")
+with open(filename, 'w') as f:
 	for i in range(len(y_test)):
 		predicted = []
 		for idx, x in enumerate(preds[i]):
 			if x == 1:
 				predicted.append('#{}'.format(hashtag_index[idx+1]))
 		f.write("{}\t{}\t{}\n".format(x_test[i].strip(), y_test[i], ' '.join(predicted)))
+
+print("Saving model to '{}'..".format(modelname))
+model.save(modelname)

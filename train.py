@@ -180,8 +180,8 @@ for x in tk_word.word_index:
 	hashtag_index[tk_word.word_index[x]] = x
 print(hashtag_index)
 
-filename = '/' + data_size + '_cnn_bi_lstm/result_cnn_bi_lstm.tsv'
-modelname = '/' + data_size + '_cnn_bi_lstm/cnn_bi_lstm_model.h5'
+filename = data_size + '_cnn_bi_lstm/result_cnn_bi_lstm.tsv'
+modelname = data_size + '_cnn_bi_lstm/cnn_bi_lstm_model.h5'
 if not os.path.exists(os.path.dirname(filename)):
     try:
         os.makedirs(os.path.dirname(filename))
