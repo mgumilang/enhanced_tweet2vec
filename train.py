@@ -15,6 +15,7 @@ import sys
 
 batch_size = 32
 epochs = 20
+num_chars = 70
 
 data_size = sys.argv[1]
 data_train = data_size + "_data_train.txt"
@@ -48,7 +49,7 @@ with open(data_test, 'r') as f:
 tk_char = Tokenizer(filters='', char_level=True)
 tk_char.fit_on_texts(x_train)
 char_dict_len = len(tk_char.word_index)
-print("Char dict length =", char_dict_len)
+print("Char dict length = %s" % char_dict_len)
 
 print("Converting x_train to one-hot vectors..")
 x_train_ohv = []
@@ -57,7 +58,7 @@ i = 1
 for x in x_train:
 	if (i % 1000 == 0) or (i == x_len): print("%s of %s" % (i, x_len))
 	i += 1
-	x_train_ohv.append(tk_char.texts_to_matrix(x))
+	x_train_ohv.append(sequence.pad_sequences(tk_char.texts_to_matrix(x), maxlen=num_chars, padding='post', truncating='post'))
 print("Add padding to make 150*char_dict_len matrix..")
 x_train_ohv = sequence.pad_sequences(x_train_ohv, maxlen=150, padding='post', truncating='post')
 
@@ -68,7 +69,7 @@ i = 1
 for x in x_test:
 	if (i % 1000 == 0) or (i == x_len): print("%s of %s" % (i, x_len))
 	i += 1
-	x_test_ohv.append(tk_char.texts_to_matrix(x))
+	x_test_ohv.append(sequence.pad_sequences(tk_char.texts_to_matrix(x), maxlen=num_chars, padding='post', truncating='post'))
 print("Add padding to make 150*char_dict_len matrix..")
 x_test_ohv = sequence.pad_sequences(x_test_ohv, maxlen=150, padding='post', truncating='post')
 
@@ -76,7 +77,7 @@ x_test_ohv = sequence.pad_sequences(x_test_ohv, maxlen=150, padding='post', trun
 tk_word = Tokenizer()
 tk_word.fit_on_texts(y_train)
 word_dict_len = len(tk_word.word_index)
-print("Word dict length =", word_dict_len)
+print("Word dict length = %s" % word_dict_len)
 
 print("Converting y_train to vector of class..")
 y_train_v = tk_word.texts_to_matrix(y_train)
@@ -96,7 +97,7 @@ model.add(Conv1D(250,
 				 padding='valid',
 				 activation='relu',
 				 strides=1,
-				 input_shape=(150, char_dict_len+1)))
+				 input_shape=(150, num_chars)))
 model.add(MaxPooling1D())
 model.add(Dropout(0.25))
 
@@ -148,26 +149,6 @@ def mean_rank(y_true, y_pred):
 				sum_rank += idx
 	return sum_rank/np.sum(y_true)
 
-
-# sum_precision = 0.
-# sum_recall = 0.
-# for i in range(len(y_test_v)):
-# 	idx_preds = list(preds[i])
-# 	idx_preds = np.argsort(idx_preds)
-# 	n_hashtag = sum(y_test_v[i])
-# 	idx_preds = idx_preds[:-(n_hashtag+1):-1]
-# 	pred_hashtag = np.asarray(preds[i])
-# 	pred_hashtag[idx_preds] = 1
-# 	pred_hashtag[pred_hashtag<1] = 0
-# 	sum_hit = sum([a*b for a,b in zip(pred_hashtag, y_test_v[i])])
-# 	recall = float(sum_hit) / n_hashtag
-# 	sum_recall += recall
-# 	precision = float(sum_hit) / n_hashtag
-# 	sum_precision += precision
-
-# final_recall = sum_recall / len(y_test_v)
-# final_precision = sum_precision / len(y_test_v)
-# f1 = (2 * final_precision * final_recall) / (final_precision + final_recall
 print("Calculating evaluation..")
 print("Recall    @10 = {:3.2f}%".format(recall10(y_test_v, preds) * 100))
 print("Precision @1  = {:3.2f}%".format(precision1(y_test_v, preds) * 100))
