@@ -13,6 +13,8 @@ import os
 import errno
 import sys
 
+from datetime import datetime
+
 batch_size = 32
 epochs = 20
 num_chars = 70
@@ -161,8 +163,10 @@ for x in tk_word.word_index:
 	hashtag_index[tk_word.word_index[x]] = x
 print(hashtag_index)
 
-filename = data_size + '_cnn_bi_lstm/result_cnn_bi_lstm.tsv'
-modelname = data_size + '_cnn_bi_lstm/cnn_bi_lstm_model.h5'
+d = datetime.now()
+
+filename = data_size + '_cnn_bi_lstm/' + str(d.date()) + '_' + str(d.hour) + '-' + str(d.minute) + '-' + str(d.second) + '_result.tsv'
+modelname = data_size + '_cnn_bi_lstm/' + str(d.date()) + '_' + str(d.hour) + '-' + str(d.minute) + '-' + str(d.second) + '_model.h5'
 if not os.path.exists(os.path.dirname(filename)):
     try:
         os.makedirs(os.path.dirname(filename))
