@@ -17,6 +17,7 @@ from datetime import datetime
 
 batch_size = 32
 epochs = 20
+optimizer = 'Adam'
 
 data_size = sys.argv[1]
 data_train = data_size + "_data_train.txt"
@@ -100,7 +101,7 @@ model.add(Embedding(70, 128, input_length=150))
 model.add(Bidirectional(GRU(64, dropout=0.5)))
 model.add(Dense(word_dict_len, activation='softmax'))
 
-model.compile('adam', 'binary_crossentropy', metrics=['categorical_accuracy'])
+model.compile(optimizer, 'binary_crossentropy', metrics=['categorical_accuracy'])
 
 print('Train...')
 model.fit(x_train_ohv, y_train_v,
@@ -137,7 +138,7 @@ def mean_rank(y_true, y_pred):
 				sum_rank += idx
 	return sum_rank/np.sum(y_true)
 
-print("Calculating evaluation..")
+print("Evaluation for CNN + Bi-LSTM w/ {} optimizer..".format(optimizer))
 print("Recall    @10 = {:3.2f}%".format(recall10(y_test_v, preds) * 100))
 print("Precision @1  = {:3.2f}%".format(precision1(y_test_v, preds) * 100))
 print("Mean Rank     = {}".format(mean_rank(y_test_v, preds)))
