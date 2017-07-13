@@ -15,7 +15,7 @@ import sys
 
 from datetime import datetime
 
-batch_size = 32
+batch_size = 64
 epochs = 20
 optimizer = 'Adam'
 
@@ -138,7 +138,7 @@ def mean_rank(y_true, y_pred):
 				sum_rank += idx
 	return sum_rank/np.sum(y_true)
 
-print("Evaluation for CNN + Bi-LSTM w/ {} optimizer..".format(optimizer))
+print("Evaluation for Bi-BRU w/ {} optimizer..".format(optimizer))
 print("Recall    @10 = {:3.2f}%".format(recall10(y_test_v, preds) * 100))
 print("Precision @1  = {:3.2f}%".format(precision1(y_test_v, preds) * 100))
 print("Mean Rank     = {}".format(mean_rank(y_test_v, preds)))
@@ -152,8 +152,8 @@ print(hashtag_index)
 
 d = datetime.now()
 
-filename = data_size + '_cnn_bi_lstm/' + str(d.date()) + '_' + str(d.hour) + '-' + str(d.minute) + '-' + str(d.second) + '_result.tsv'
-modelname = data_size + '_cnn_bi_lstm/' + str(d.date()) + '_' + str(d.hour) + '-' + str(d.minute) + '-' + str(d.second) + '_model.h5'
+filename = data_size + '_bi_GRU/' + str(d.date()) + '_' + str(d.hour) + '-' + str(d.minute) + '-' + str(d.second) + '_result.tsv'
+modelname = data_size + '_bi_GRU/' + str(d.date()) + '_' + str(d.hour) + '-' + str(d.minute) + '-' + str(d.second) + '_model.h5'
 if not os.path.exists(os.path.dirname(filename)):
     try:
         os.makedirs(os.path.dirname(filename))

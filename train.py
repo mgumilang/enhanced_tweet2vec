@@ -15,7 +15,7 @@ import sys
 
 from datetime import datetime
 
-batch_size = 32
+batch_size = 64
 epochs = 20
 num_chars = 70
 optimizer = 'Adam'
