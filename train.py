@@ -2,11 +2,14 @@ from __future__ import print_function
 
 from keras.preprocessing import sequence
 from keras.preprocessing.text import Tokenizer, text_to_word_sequence
-from keras.models import Sequential
+from keras.models import Sequential, load_model
 from keras.layers import Dense, Dropout, Activation
 from keras.layers import Embedding
 from keras.layers import Conv1D, MaxPooling1D
 from keras.layers import LSTM, Bidirectional
+from keras.callbacks import ModelCheckpoint
+from keras import optimizers
+from keras import regularizers
 
 import numpy as np
 import os
@@ -15,12 +18,16 @@ import sys
 
 from datetime import datetime
 
-batch_size = 64
+batch_size = 18
 epochs = 20
 num_chars = 70
 optimizer = 'Adam'
 
 data_size = sys.argv[1]
+try:
+	loaded = sys.argv[2]
+except:
+	loaded = None
 data_train = data_size + "_data_train.txt"
 data_test = data_size + "_data_test.txt"
 
@@ -92,35 +99,51 @@ y_test_v = tk_word.texts_to_matrix(y_test)
 print("Add padding to emit 0 in front of each vector..")
 y_test_v = sequence.pad_sequences(y_test_v, maxlen=word_dict_len)
 
-print("Building model")
-model = Sequential()
+if not loaded:
+	print("Building model")
+	model = Sequential()
 
-model.add(Conv1D(250,
-				 3,
-				 padding='valid',
-				 activation='relu',
-				 strides=1,
-				 input_shape=(150, num_chars)))
-model.add(MaxPooling1D())
-model.add(Dropout(0.25))
+	model.add(Conv1D(300,
+					 3,
+					 padding='valid',
+					 activation='relu',
+					 strides=1,
+					 input_shape=(150, num_chars)))
+	model.add(MaxPooling1D())
+	model.add(Dropout(0.25))
 
-model.add(Conv1D(100,
-				 2,
-				 padding='valid',
-				 activation='relu',
-				 strides=1))
-model.add(MaxPooling1D())
-model.add(Dropout(0.25))
+	model.add(Conv1D(120,
+					 2,
+					 padding='valid',
+					 activation='relu',
+					 strides=1))
+	model.add(MaxPooling1D())
+	model.add(Dropout(0.25))
 
-model.add(Bidirectional(LSTM(64, dropout=0.5)))
-model.add(Dense(word_dict_len, activation='softmax'))
+	model.add(Bidirectional(LSTM(72, dropout=0.5)))
+	model.add(Dense(word_dict_len, activation='softmax'))
 
-model.compile(optimizer, 'binary_crossentropy', metrics=['categorical_accuracy'])
+	model.compile(optimizer, 'binary_crossentropy', metrics=['categorical_accuracy'])
+else:
+	print("Loading model")
+	model = load_model(loaded)
+
+# define the checkpoint
+filepath="%s_cnn_bi_lstm/{epoch:02d}-{loss:.4f}.hdf5" % data_size
+if not os.path.exists(os.path.dirname(filepath)):
+    try:
+        os.makedirs(os.path.dirname(filepath))
+    except OSError as exc: # Guard against race condition
+        if exc.errno != errno.EEXIST:
+            raise
+checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
+callbacks_list = [checkpoint]
 
 print('Train...')
 model.fit(x_train_ohv, y_train_v,
           batch_size=batch_size,
-          epochs=epochs)
+          epochs=epochs,
+          callbacks=callbacks_list)
 
 preds = model.predict(x_test_ohv)
 
@@ -162,18 +185,11 @@ print("Mean Rank     = {}".format(mean_rank(y_test_v, preds)))
 hashtag_index = {}
 for x in tk_word.word_index:
 	hashtag_index[tk_word.word_index[x]] = x
-print(hashtag_index)
 
 d = datetime.now()
 
 filename = data_size + '_cnn_bi_lstm/' + str(d.date()) + '_' + str(d.hour) + '-' + str(d.minute) + '-' + str(d.second) + '_result.tsv'
 modelname = data_size + '_cnn_bi_lstm/' + str(d.date()) + '_' + str(d.hour) + '-' + str(d.minute) + '-' + str(d.second) + '_model.h5'
-if not os.path.exists(os.path.dirname(filename)):
-    try:
-        os.makedirs(os.path.dirname(filename))
-    except OSError as exc: # Guard against race condition
-        if exc.errno != errno.EEXIST:
-            raise
 
 # Open and write to result_cnn_bi_lstm.tsv
 print("Writing result..")

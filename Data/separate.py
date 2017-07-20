@@ -14,7 +14,7 @@ y_train = []
 x_test = []
 y_test = []
 
-test_num = 1500
+test_num = 10000
 label_min_threshold = 500
 
 # Preparing data

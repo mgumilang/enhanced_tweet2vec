@@ -27,7 +27,7 @@ api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 
 # Fetch tweets
 with open('custom_unprocessed.txt', 'ab') as f:
-    for tweet in tweepy.Cursor(api.search, q="#exo -filter:retweets", max_id=max_id, since="2017-06-27", until="2017-07-13", lang="en").items():
+    for tweet in tweepy.Cursor(api.search, q="#GoTS7 -filter:retweets", max_id=max_id, since="2017-06-27", until="2017-07-17", lang="en").items():
         # Process a single status
         print(str(tweet.created_at), tweet.id, tweet.text)
         f.write(json.dumps(tweet.text.encode('utf8')) + '\n')
@@ -36,4 +36,4 @@ with open('custom_unprocessed.txt', 'ab') as f:
 
 # Save checkpoint if fetching tweets succeeds
 with open("custom_checkpoint.txt", 'ab') as f:
-    f.write("%s %s exo\n" % (time, str(cp)))
+    f.write("%s %s GoTS7\n" % (time, str(cp)))
