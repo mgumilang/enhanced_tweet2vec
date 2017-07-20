@@ -59,7 +59,7 @@ with open(data_test, 'r') as f:
 tk_char = Tokenizer(filters='', char_level=True)
 tk_char.fit_on_texts(x_train)
 char_dict_len = len(tk_char.word_index)
-print("Char dict length =", char_dict_len)
+print("Char dict length = %s" % char_dict_len)
 
 print("Converting x_train to one-hot vectors..")
 x_train_ohv = []
@@ -87,7 +87,7 @@ x_test_ohv = sequence.pad_sequences(x_test_ohv, maxlen=150, padding='post', trun
 tk_word = Tokenizer()
 tk_word.fit_on_texts(y_train)
 word_dict_len = len(tk_word.word_index)
-print("Word dict length =", word_dict_len)
+print("Word dict length = %s" % word_dict_len)
 
 print("Converting y_train to vector of class..")
 y_train_v = tk_word.texts_to_matrix(y_train)
@@ -196,10 +196,7 @@ modelname = data_size + '_cnn_bi_gru/' + str(d.date()) + '_' + str(d.hour) + '-'
 print("Writing result..")
 with open(filename, 'w') as f:
 	for i in range(len(y_test)):
-		predicted = []
-		for idx, x in enumerate(preds[i]):
-			if x == 1:
-				predicted.append('#{}'.format(hashtag_index[idx+1]))
+		predicted = sorted(preds, reverse=True)[:len(y_test[i].split())]
 		f.write("{}\t{}\t{}\n".format(x_test[i].strip(), y_test[i], ' '.join(predicted)))
 
 print("Saving model..")

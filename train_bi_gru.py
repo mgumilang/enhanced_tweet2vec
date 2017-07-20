@@ -58,7 +58,7 @@ with open(data_test, 'r') as f:
 tk_char = Tokenizer(filters='', char_level=True)
 tk_char.fit_on_texts(x_train)
 char_dict_len = len(tk_char.word_index)
-print("Char dict length =", char_dict_len)
+print("Char dict length = %s" % char_dict_len)
 
 print("Converting x_train chars to integers..")
 x_train_ohv = []
@@ -88,7 +88,7 @@ x_test_ohv = sequence.pad_sequences(x_test_ohv, maxlen=150, padding='post', trun
 tk_word = Tokenizer()
 tk_word.fit_on_texts(y_train)
 word_dict_len = len(tk_word.word_index)
-print("Word dict length =", word_dict_len)
+print("Word dict length = %s" % word_dict_len)
 
 print("Converting y_train to vector of class..")
 y_train_v = tk_word.texts_to_matrix(y_train)
@@ -116,9 +116,9 @@ else:
 
 # define the checkpoint
 filepath="%s_bi_gru/{epoch:02d}-{loss:.4f}.hdf5" % data_size
-if not os.path.exists(os.path.dirname(filename)):
+if not os.path.exists(os.path.dirname(filepath)):
     try:
-        os.makedirs(os.path.dirname(filename))
+        os.makedirs(os.path.dirname(filepath))
     except OSError as exc: # Guard against race condition
         if exc.errno != errno.EEXIST:
             raise
