@@ -205,13 +205,17 @@ print("Mean Rank     = {}".format(mean_rank(y_test_v, preds)))
 
 d = datetime.now()
 filename = data_size + '_' + data_type + '/' + str(d.date()) + '_' + str(d.hour) + '-' + str(d.minute) + '-' + str(d.second) + '_result.tsv'
+hashtag_index = {}
+for x in tk_word.word_index:
+	hashtag_index[tk_word.word_index[x]] = x
 
 # Open and write to result_cnn_bi_lstm.tsv
 print("Writing result..")
 with open(filename, 'w') as f:
+	f.write("Tweet\tTrue\tPredicted\n")
 	for i in range(len(y_test)):
 		predicted = []
-		for idx, x in enumerate(preds[i]):
-			if x == 1:
-				predicted.append('#{}'.format(hashtag_index[idx+1]))
+		predsort = np.argsort(preds[i])[::-1]
+		for idx in predsort[:len(y_test[i].split())]:
+			predicted.append("#{}".format(hashtag_index[idx+1]))
 		f.write("{}\t{}\t{}\n".format(x_test[i].strip(), y_test[i], ' '.join(predicted)))

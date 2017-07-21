@@ -161,7 +161,7 @@ def mean_rank(y_true, y_pred):
 				sum_rank += idx
 	return sum_rank/np.sum(y_true)
 
-print("Evaluation for Bi-BRU w/ {} optimizer..".format(optimizer))
+print("Evaluation for Bi-GRU w/ {} optimizer..".format(optimizer))
 print("Recall    @10 = {:3.2f}%".format(recall10(y_test_v, preds) * 100))
 print("Precision @1  = {:3.2f}%".format(precision1(y_test_v, preds) * 100))
 print("Mean Rank     = {}".format(mean_rank(y_test_v, preds)))
@@ -175,17 +175,15 @@ print(hashtag_index)
 
 d = datetime.now()
 
-filename = data_size + '_bi_GRU/' + str(d.date()) + '_' + str(d.hour) + '-' + str(d.minute) + '-' + str(d.second) + '_result.tsv'
-modelname = data_size + '_bi_GRU/' + str(d.date()) + '_' + str(d.hour) + '-' + str(d.minute) + '-' + str(d.second) + '_model.h5'
+filename = data_size + '_bi_gru/' + str(d.date()) + '_' + str(d.hour) + '-' + str(d.minute) + '-' + str(d.second) + '_result.tsv'
+modelname = data_size + '_bi_gru/' + str(d.date()) + '_' + str(d.hour) + '-' + str(d.minute) + '-' + str(d.second) + '_model.h5'
 
 # Open and write to result_cnn_bi_lstm.tsv
 print("Writing result..")
 with open(filename, 'w') as f:
+	f.write("Tweet\tTrue\tPredicted\n")
 	for i in range(len(y_test)):
-		predicted = []
-		for idx, x in enumerate(preds[i]):
-			if x == 1:
-				predicted.append('#{}'.format(hashtag_index[idx+1]))
+		predicted = sorted(preds, reverse=True)[:len(y_test[i].split())]
 		f.write("{}\t{}\t{}\n".format(x_test[i].strip(), y_test[i], ' '.join(predicted)))
 
 print("Saving model..")

@@ -187,11 +187,9 @@ modelname = data_size + '_word_cnn_bi_lstm/' + str(d.date()) + '_' + str(d.hour)
 # Open and write to result_cnn_bi_lstm.tsv
 print("Writing result..")
 with open(filename, 'w') as f:
+	f.write("Tweet\tTrue\tPredicted\n")
 	for i in range(len(y_test)):
-		predicted = []
-		for idx, x in enumerate(preds[i]):
-			if x == 1:
-				predicted.append('#{}'.format(hashtag_index[idx+1]))
+		predicted = sorted(preds, reverse=True)[:len(y_test[i].split())]
 		f.write("{}\t{}\t{}\n".format(x_test[i].strip(), y_test[i], ' '.join(predicted)))
 
 print("Saving model..")
