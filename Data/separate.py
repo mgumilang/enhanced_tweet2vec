@@ -14,8 +14,9 @@ y_train = []
 x_test = []
 y_test = []
 
-test_num = 10000
+test_num = 20000
 label_min_threshold = 500
+label_max_threshold = 20000
 
 # Preparing data
 with open(train_data, 'r') as f:
@@ -32,6 +33,7 @@ with open(train_data, 'r') as f:
 y_train = [[y.lower() for y in labels] for labels in y_train]
 
 # Eliminate duplicate data and unecessary hashtag
+print(" Eliminate duplicate data")
 x_temp = []
 y_temp = []
 for i, x in enumerate(x_train):
@@ -53,7 +55,7 @@ y_train = y_temp
 x_temp = []
 y_temp = []
 
-# Calculating hashtag's frequency
+# Calculating hashtag's frequency and write hashtags to file
 hashcount = OrderedDict()
 for ll in y_train:
 	for y in ll:
@@ -61,17 +63,20 @@ for ll in y_train:
 			hashcount[y] = 0
 		hashcount[y] += 1
 sorted_hash = sorted(hashcount.items(), key=operator.itemgetter(1))
-print(sorted_hash)
+with open("hashtags.txt", 'w') as f:
+	f.write(sorted_hash)
+
 count = 0
 for x in hashcount.keys():
-	if hashcount[x] > label_min_threshold:
+	if hashcount[x] >= label_min_threshold:
 		count += 1
 print("hashtag count =", count)
 
+print("Eliminate unnecessary hashtag")
 for i, labels in enumerate(y_train):
 	label_temp = []
 	for label in labels:
-		if hashcount[label] > label_min_threshold:
+		if (hashcount[label] >= label_min_threshold) and (hashcount[label] <= label_max_threshold):
 			label_temp.append(label)
 	if label_temp:
 		x_temp.append(x_train[i])
@@ -86,7 +91,7 @@ x_train, y_train = [], []
 found = False
 labels = hashcount.keys()
 for label in labels:
-	if hashcount[label] > label_min_threshold:
+	if hashcount[label] >= label_min_threshold:
 		found = False
 		for train_labels in y_train:
 			if label in train_labels:
