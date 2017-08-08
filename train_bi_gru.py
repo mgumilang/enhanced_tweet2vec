@@ -19,7 +19,7 @@ from datetime import datetime
 
 batch_size = 18
 epochs = 20
-optimizer = optimizers.RMSprop(lr=0.01)
+optimizer = optimizers.RMSprop(lr=0.005)
 
 data_size = sys.argv[1]
 try:
@@ -112,7 +112,7 @@ if not loaded:
 	model.compile(optimizer, 'binary_crossentropy', metrics=['categorical_accuracy'])
 else:
 	print("Loading model")
-	starts_from = int(loaded.split('/')[1].split('-')[0])
+	starts_from = int(loaded.split('/')[1].split('-')[0]) + 1
 	model = load_model(loaded)
 
 # define the checkpoint
@@ -123,15 +123,16 @@ if not os.path.exists(os.path.dirname(filepath)):
     except OSError as exc: # Guard against race condition
         if exc.errno != errno.EEXIST:
             raise
-checkpoint = ModelCheckpoint(filepath, monitor='loss', save_best_only=True, mode='min')
+checkpoint = ModelCheckpoint(filepath, monitor='loss', save_best_only=True, verbose=1, mode='min')
 callbacks_list = [checkpoint]
 
 print('Train...')
 model.fit(x_train_ohv, y_train_v,
           batch_size=batch_size,
           epochs=epochs,
+          initial_epoch=starts_from,
           callbacks=callbacks_list,
-          initial_epoch=starts_from)
+          validation_split=0.1)
 
 preds = model.predict(x_test_ohv)
 

@@ -17,6 +17,7 @@ data_train = data_size + "_data_train.txt"
 data_test = data_size + "_data_test.txt"
 
 x_test = []
+x_train = []
 y_test = []
 y_train = []
 
@@ -26,6 +27,8 @@ with open(data_train, 'r') as f:
 	for line in lines:
 		line = line.split('\t')
 		train_label = line[0]
+		train_text = line[1]
+		x_train.append(train_text)
 		y_train.append(train_label)
 
 with open(data_test, 'r') as f:
@@ -40,7 +43,7 @@ with open(data_test, 'r') as f:
 if data_type in ('cnn_bi_lstm', 'cnn_bi_gru'):
 	# Building char dictionary from x_test
 	tk_char = Tokenizer(filters='', char_level=True)
-	tk_char.fit_on_texts(x_test)
+	tk_char.fit_on_texts(x_train)
 	char_dict_len = len(tk_char.word_index)
 	print("Char dict length = %s" % char_dict_len)
 
@@ -73,7 +76,7 @@ if data_type in ('cnn_bi_lstm', 'cnn_bi_gru'):
 elif data_type == 'bi_gru':
 	# Building char dictionary from x_test
 	tk_char = Tokenizer(filters='', char_level=True)
-	tk_char.fit_on_texts(x_test)
+	tk_char.fit_on_texts(x_train)
 	char_dict_len = len(tk_char.word_index)
 	print("Char dict length =", char_dict_len)
 
@@ -107,7 +110,7 @@ elif data_type == 'bi_gru':
 elif data_type == 'word_cnn_bi_gru':
 	# Building word dictionary from x_test
 	tk_train = Tokenizer(num_words=maxlen)
-	tk_train.fit_on_texts(x_test)
+	tk_train.fit_on_texts(x_train)
 	train_dict_len = len(tk_train.word_index)
 	print("Train word dict length =", train_dict_len)
 
@@ -135,7 +138,7 @@ elif data_type == 'word_cnn_bi_gru':
 else: # data_type == word_bi_gru
 	# Building word dictionary from x_train
 	tk_train = Tokenizer(num_words=maxlen)
-	tk_train.fit_on_texts(x_test)
+	tk_train.fit_on_texts(x_train)
 	train_dict_len = len(tk_train.word_index)
 	print("Train word dict length = %s" % train_dict_len)
 
