@@ -21,13 +21,13 @@ for hashtags in train_y:
 	labels = hashtags.split()
 	labels_list.extend(labels)
 
-n_label = 0
+eligible = []
 
 counts = Counter(labels_list)
 for label in counts:
 	if counts[label] >= min_tweets:
-		n_label += 1
-print("Found %s hashtags greater than or equal to %s" % n_label, min_tweets)
+		eligible.append(label)
+print("Found %d hashtags greater than or equal to %s" % len(eligible), min_tweets)
 
 x_temp = []
 y_temp = []
@@ -40,6 +40,7 @@ for idx, line in enumerate(lines):
 	if label_temp:
 		x_temp.append(line.split('\t')[1])
 		y_temp.append(label_temp)
+		counts[label] -= 1
 
 with open('trimmed.txt', 'w') as f:
 	for i in range(len(x_temp)):
