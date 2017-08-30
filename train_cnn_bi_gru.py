@@ -20,7 +20,7 @@ from datetime import datetime
 batch_size = 18
 epochs = 20
 num_chars = 70
-optimizer = 'RMSprop'
+optimizer = 'Adam'
 
 data_size = sys.argv[1]
 try:
@@ -120,7 +120,7 @@ if not loaded:
 	model.add(MaxPooling1D())
 	model.add(Dropout(0.25))
 
-	model.add(Bidirectional(GRU(128), dropout=0.5))
+	model.add(Bidirectional(GRU(400, dropout=0.5)))
 	model.add(Dense(word_dict_len, activation='softmax'))
 
 	model.compile(optimizer, 'binary_crossentropy', metrics=['categorical_accuracy'])
@@ -137,7 +137,7 @@ if not os.path.exists(os.path.dirname(filepath)):
     except OSError as exc: # Guard against race condition
         if exc.errno != errno.EEXIST:
             raise
-checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
+checkpoint = ModelCheckpoint(filepath, monitor='loss')
 callbacks_list = [checkpoint]
 
 print('Train...')
@@ -146,7 +146,7 @@ model.fit(x_train_ohv, y_train_v,
           epochs=epochs,
           callbacks=callbacks_list,
           initial_epoch=starts_from,
-          validation_split=0.01)
+          validation_split=0.005)
 
 preds = model.predict(x_test_ohv)
 
@@ -188,7 +188,6 @@ print("Mean Rank     = {}".format(mean_rank(y_test_v, preds)))
 hashtag_index = {}
 for x in tk_word.word_index:
 	hashtag_index[tk_word.word_index[x]] = x
-print(hashtag_index)
 
 d = datetime.now()
 
