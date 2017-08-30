@@ -27,7 +27,7 @@ counts = Counter(labels_list)
 for label in counts:
 	if counts[label] >= min_tweets:
 		eligible.append(label)
-print("Found %d hashtags greater than or equal to %s" % len(eligible), min_tweets)
+print("Found %d hashtags greater than or equal to %s" % (len(eligible), min_tweets))
 
 x_temp = []
 y_temp = []
@@ -42,6 +42,17 @@ for idx, line in enumerate(lines):
 		y_temp.append(label_temp)
 		counts[label] -= 1
 
-with open('trimmed.txt', 'w') as f:
-	for i in range(len(x_temp)):
-		f.write('%s\t%s\n' % y_temp[i], x_temp[i])
+lines = []
+for i in range(len(x_temp)):
+	lines.append('%s\t%s' % (' '.join(y_temp[i]), x_temp[i]))
+
+test_lines = lines[:5000]
+train_lines = lines[5000:]
+
+with open('trimmed_train.txt', 'w') as f:
+	for line in train_lines:
+		f.write(line)
+
+with open('trimmed_test.txt', 'w') as f:
+	for line in test_lines:
+		f.write(line)	
